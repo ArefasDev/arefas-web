@@ -58,6 +58,7 @@ const FirstAccessForm: React.FC<FirstAccessFormProps> = ({ setFormType }) => {
             }
 
             await updatePassword(user, password)
+            auth.signOut()
             message.success(
                 'Senha alterada com sucesso! Retornando ao login...'
             )
