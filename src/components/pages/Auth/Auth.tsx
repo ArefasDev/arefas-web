@@ -38,14 +38,14 @@ export default function Auth() {
                 providerId: user?.providerId,
             }
             setUser(userInfo as UserInfo)
-            if (user) {
+            if (user && formType === 'login') {
                 const redirectURL = getRedirectURL()
                 navigate(redirectURL || '/dashboard/association')
             }
         })
 
         return () => unsubscribe()
-    }, [navigate, setUser])
+    }, [formType, navigate, setUser])
 
     const renderForm = () => {
         switch (formType) {

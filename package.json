@@ -1,7 +1,7 @@
 {
-    "name": "antd-demo",
-    "homepage": "https://arefasdev.github.io/arefas-web/",
+    "name": "arefas-web",
     "private": true,
+    "homepage": "https://arefasdev.github.io/arefas-web/",
     "version": "0.0.1",
     "type": "module",
     "scripts": {
