@@ -38,7 +38,7 @@ export default function Auth() {
                 providerId: user?.providerId,
             }
             setUser(userInfo as UserInfo)
-            if (user && formType === 'login') {
+            if (user && formType === 'login' && user.emailVerified === true) {
                 const redirectURL = getRedirectURL()
                 navigate(redirectURL || '/dashboard/association')
             }

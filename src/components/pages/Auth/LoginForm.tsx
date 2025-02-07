@@ -1,6 +1,9 @@
-import { Button, Form, Input, Typography, message } from 'antd'
+import { Button, Form, Input, Typography, message, notification } from 'antd'
 import { FirebaseError } from 'firebase/app'
-import { signInWithEmailAndPassword } from 'firebase/auth'
+import {
+    sendEmailVerification,
+    signInWithEmailAndPassword,
+} from 'firebase/auth'
 import { useNavigate } from 'react-router'
 import { auth } from '../../../firebase'
 
@@ -12,11 +15,14 @@ type LoginFormProps = {
 
 const LoginForm: React.FC<LoginFormProps> = ({ setFormType }) => {
     const navigate = useNavigate()
+    const [messageApi, contextHolder] = message.useMessage()
+    const [notificationApi, notificationContextHolder] =
+        notification.useNotification()
 
     const login = async (email: string, password: string) => {
         try {
             if (password === 'arefas123') {
-                message.info(
+                messageApi.info(
                     'Precisamos alterar a senha e verificar o seu email.'
                 )
                 setFormType('firstAccess')
@@ -31,25 +37,31 @@ const LoginForm: React.FC<LoginFormProps> = ({ setFormType }) => {
             const user = userCredential.user
 
             if (!user.emailVerified) {
-                message.error(
-                    'Seu e-mail ainda não foi verificado. Clique em "Primeiro acesso" para completar a verificação.'
-                )
+                auth.signOut()
+                notificationApi.open({
+                    type: 'info',
+                    message:
+                        'Sua conta ainda não foi verificada. Enviamos um e-mail com um link para a verificação, verifique sua caixa de entrada.',
+                    duration: 10,
+                    showProgress: true,
+                })
+                await sendEmailVerification(user)
                 return
             }
 
-            message.success('Login realizado com sucesso!')
+            messageApi.success('Login realizado com sucesso!')
             navigate('/dashboard/association')
         } catch (error: unknown) {
             if (error instanceof FirebaseError) {
                 if (error.code === 'auth/user-not-found')
-                    message.error('Usuário não encontrado.')
+                    messageApi.error('Usuário não encontrado.')
                 else if (
                     error.code === 'auth/wrong-password' ||
                     error.code === 'auth/invalid-credential'
                 )
-                    message.error('Senha incorreta.')
-                else message.error('Erro ao fazer login. Tente novamente.')
-            } else message.error('Erro inesperado. Tente novamente.')
+                    messageApi.error('Senha incorreta.')
+                else messageApi.error('Erro ao fazer login. Tente novamente.')
+            } else messageApi.error('Erro inesperado. Tente novamente.')
         }
     }
 
@@ -58,6 +70,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ setFormType }) => {
             layout='vertical'
             onFinish={(d) => login(d.email, d.password)}
         >
+            {contextHolder}
+            {notificationContextHolder}
             <Form.Item
                 name='email'
                 label='E-mail'

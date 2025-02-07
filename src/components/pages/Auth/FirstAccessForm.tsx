@@ -18,6 +18,7 @@ const FirstAccessForm: React.FC<FirstAccessFormProps> = ({ setFormType }) => {
     const [currentStep, setCurrentStep] = useState(0)
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [messageApi, contextHolder] = message.useMessage()
 
     const loginAndVerifyEmail = async () => {
         try {
@@ -30,22 +31,22 @@ const FirstAccessForm: React.FC<FirstAccessFormProps> = ({ setFormType }) => {
 
             if (!user.emailVerified) {
                 await sendEmailVerification(user)
-                message.info(
+                messageApi.info(
                     'Um e-mail de verificação foi enviado. Verifique sua caixa de entrada.'
                 )
                 return
             }
 
-            message.success('E-mail verificado com sucesso!')
+            messageApi.success('E-mail verificado com sucesso!')
             setCurrentStep(1)
         } catch (error: unknown) {
             if (error instanceof FirebaseError) {
                 if (error.code === 'auth/user-not-found')
-                    message.error('Usuário não encontrado.')
+                    messageApi.error('Usuário não encontrado.')
                 else if (error.code === 'auth/wrong-password')
-                    message.error('Senha incorreta.')
-                else message.error('Erro ao fazer login. Tente novamente.')
-            } else message.error('Erro inesperado. Tente novamente.')
+                    messageApi.error('Senha incorreta.')
+                else messageApi.error('Erro ao fazer login. Tente novamente.')
+            } else messageApi.error('Erro inesperado. Tente novamente.')
         }
     }
 
@@ -53,19 +54,21 @@ const FirstAccessForm: React.FC<FirstAccessFormProps> = ({ setFormType }) => {
         try {
             const user = auth.currentUser
             if (!user) {
-                message.error('Você precisa estar logado para alterar a senha.')
+                messageApi.error(
+                    'Você precisa estar logado para alterar a senha.'
+                )
                 return
             }
 
             await updatePassword(user, password)
             auth.signOut()
-            message.success(
+            messageApi.success(
                 'Senha alterada com sucesso! Retornando ao login...'
             )
             setFormType('login')
         } catch (e: unknown) {
             console.log(e)
-            message.error('Erro ao alterar a senha. Tente novamente.')
+            messageApi.error('Erro ao alterar a senha. Tente novamente.')
         }
     }
 
@@ -135,6 +138,7 @@ const FirstAccessForm: React.FC<FirstAccessFormProps> = ({ setFormType }) => {
 
     return (
         <div>
+            {contextHolder}
             <Steps current={currentStep}>
                 {steps.map((step, index) => (
                     <Steps.Step

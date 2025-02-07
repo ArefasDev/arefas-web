@@ -12,22 +12,24 @@ type ForgotPasswordFormProps = {
 const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
     setFormType,
 }) => {
+    const [messageApi, contextHolder] = message.useMessage()
+
     const handleForgotPassword = async (values: { email: string }) => {
         try {
             await sendPasswordResetEmail(auth, values.email)
-            message.success(
+            messageApi.success(
                 'E-mail para redefinição de senha enviado com sucesso! Verifique sua caixa de entrada.'
             )
             setFormType('login')
         } catch (error) {
             if (error instanceof FirebaseError) {
                 if (error.code === 'auth/user-not-found')
-                    message.error('Usuário não encontrado.')
+                    messageApi.error('Usuário não encontrado.')
                 else
-                    message.error(
+                    messageApi.error(
                         'Erro ao enviar o e-mail de redefinição. Tente novamente.'
                     )
-            } else message.error('Erro inesperado. Tente novamente.')
+            } else messageApi.error('Erro inesperado. Tente novamente.')
         }
     }
 
@@ -36,6 +38,7 @@ const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
             layout='vertical'
             onFinish={handleForgotPassword}
         >
+            {contextHolder}
             <Form.Item
                 name='email'
                 label='E-mail'
