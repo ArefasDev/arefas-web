@@ -24,7 +24,7 @@ export default function Form({
     cancelEdit,
 }: {
     data?: Data
-    cancelEdit: () => void
+    cancelEdit?: () => void
 }) {
     const [formData, setFormData] = useState<Member>({} as Member)
     const [messageApi, contextHolder] = message.useMessage()
