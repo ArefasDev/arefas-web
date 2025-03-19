@@ -57,6 +57,7 @@ export default function Form({
                     type: 'success',
                     content: 'Associado salvo',
                 })
+                if (cancelEdit) cancelEdit()
             } else if (data && data.id) {
                 await axios.put(`${baseURL}/doc`, {
                     path: 'members',

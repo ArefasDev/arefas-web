@@ -1,8 +1,8 @@
-import { Button, message, Table, Tooltip } from 'antd'
+import { Button, Input, message, Table, Tooltip } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import axios from 'axios'
 import dayjs from 'dayjs'
-import React, { Key, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { FaUserEdit, FaUsers } from 'react-icons/fa'
 import { FaHouse } from 'react-icons/fa6'
 import { Link } from 'react-router'
@@ -16,6 +16,18 @@ export default function Members() {
     const [members, setMembers] = useState<Member[]>([])
     const [loading, setLoading] = useState<boolean>(false)
     const [isEditing, setIsEditing] = useState<boolean | { id: string }>(false)
+    const [searchText, setSearchText] = useState('')
+
+    const filteredMembers = members.filter((m) => {
+        const idMatch = m.id?.toLowerCase().includes(searchText.toLowerCase())
+        const nameMatch = m.personal.name
+            .toLowerCase()
+            .includes(searchText.toLowerCase())
+        const cpfMatch = m.personal.cpf
+            .toLowerCase()
+            .includes(searchText.toLowerCase())
+        return idMatch || nameMatch || cpfMatch
+    })
 
     const columns: ColumnsType<Member> = [
         {
@@ -46,8 +58,7 @@ export default function Members() {
                 text: category.charAt(0).toUpperCase() + category.slice(1),
                 value: category,
             })),
-            onFilter: (value: boolean | Key, record) =>
-                record.association.category === value,
+            onFilter: (value, record) => record.association.category === value,
             render: (category: string) =>
                 category.charAt(0).toUpperCase() + category.slice(1),
         },
@@ -61,8 +72,7 @@ export default function Members() {
                 text: status.charAt(0).toUpperCase() + status.slice(1),
                 value: status,
             })),
-            onFilter: (value: boolean | Key, record) =>
-                record.association.status === value,
+            onFilter: (value, record) => record.association.status === value,
             render: (status: string) =>
                 status.charAt(0).toUpperCase() + status.slice(1),
         },
@@ -76,34 +86,16 @@ export default function Members() {
             render: (date: string) => dayjs(date).format('DD/MM/YYYY'),
         },
         {
-            title: 'Endereço',
-            dataIndex: ['contact', 'addresses'],
-            key: 'address',
-            render: (addresses) => {
-                const primaryAddress =
-                    addresses.find(
-                        (a: Member['contact']['addresses'][number]) =>
-                            a.isPrimary
-                    ) || addresses[0]
-                if (!primaryAddress) return 'Não informado'
-                const { street, number, city, uf } = primaryAddress
-                return `${street}, ${number}, ${city} - ${uf}`
-            },
-        },
-        {
             title: 'Ações',
-            fixed: 'right',
             key: 'actions',
             dataIndex: 'id',
-            render: (number: string) => {
-                return (
-                    <Tooltip title='Editar associado'>
-                        <Button onClick={() => setIsEditing({ id: number })}>
-                            <FaUserEdit />
-                        </Button>
-                    </Tooltip>
-                )
-            },
+            render: (number: string) => (
+                <Tooltip title='Editar associado'>
+                    <Button onClick={() => setIsEditing({ id: number })}>
+                        <FaUserEdit />
+                    </Button>
+                </Tooltip>
+            ),
         },
     ]
 
@@ -112,21 +104,15 @@ export default function Members() {
             setLoading(true)
             try {
                 const response = await axios.get(`${baseURL}/docs`, {
-                    params: {
-                        path: 'members',
-                    },
+                    params: { path: 'members' },
                 })
-
                 setMembers(response.data || [])
                 setLoading(false)
             } catch (err: unknown) {
                 setLoading(false)
                 if (axios.isAxiosError(err)) {
                     const message = err.response?.data.message || err.message
-                    messageApi.open({
-                        type: 'error',
-                        content: message,
-                    })
+                    messageApi.open({ type: 'error', content: message })
                 } else {
                     messageApi.open({
                         type: 'error',
@@ -135,7 +121,6 @@ export default function Members() {
                 }
             }
         }
-
         getMembers()
     }, [messageApi])
 
@@ -152,12 +137,18 @@ export default function Members() {
                     },
                     {
                         label: 'Associados',
-                        value: 'dashboard/association/members',
+                        value: 'members',
                         icon: <FaUsers />,
                     },
                 ]}
             />
-            <div className='mb-3'></div>
+            <Input
+                placeholder='Pesquisar'
+                className='mt-3 w-100'
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                style={{ marginBottom: 16, width: 400 }}
+            />
             {contextHolder}
             {isEditing && typeof isEditing === 'object' && (
                 <Form
@@ -172,7 +163,10 @@ export default function Members() {
             )}
             {!isEditing && (
                 <Table
-                    dataSource={members.map((m) => ({ ...m, key: m.id }))}
+                    dataSource={filteredMembers.map((m) => ({
+                        ...m,
+                        key: m.id,
+                    }))}
                     columns={columns}
                     className='border rounded-2 bg-white'
                     scroll={{ x: 'max-content' }}
