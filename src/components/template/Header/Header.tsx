@@ -30,7 +30,7 @@ export default function Header() {
                     to='/dashboard/association'
                     style={{ textDecoration: 'none' }}
                 >
-                    <FaUsers /> Associados
+                    <FaUsers /> ASSOCIADOS
                 </Link>
             ),
             key: 'members',
@@ -42,7 +42,7 @@ export default function Header() {
                     to='/dashboard/financial'
                     style={{ textDecoration: 'none' }}
                 >
-                    <FaMoneyBill /> Financeiro
+                    <FaMoneyBill /> FINANCEIRO
                 </Link>
             ),
             key: 'financial',
@@ -54,7 +54,7 @@ export default function Header() {
                     to='/dashboard/mobile'
                     style={{ textDecoration: 'none' }}
                 >
-                    <FaMobileScreen /> Aplicativo
+                    <FaMobileScreen /> APLICATIVO
                 </Link>
             ),
             key: 'mobile',
@@ -63,7 +63,7 @@ export default function Header() {
 
     const userMenu = [
         {
-            label: 'Sair',
+            label: 'SAIR',
             key: 'logout',
             onClick: () => {
                 messageApi.open({
@@ -110,7 +110,10 @@ export default function Header() {
                 </Typography.Title>
             </div>
             <div className='d-flex align-items-center gap-2'>
-                <Dropdown menu={{ items: modulesMenu }}>
+                <Dropdown
+                    menu={{ items: modulesMenu }}
+                    className='text-uppercase'
+                >
                     <Button>
                         <FaSitemap />
                         <span className='d-none d-sm-flex align-items-center'>
@@ -122,7 +125,10 @@ export default function Header() {
                         </span>
                     </Button>
                 </Dropdown>
-                <Dropdown menu={{ items: userMenu }}>
+                <Dropdown
+                    menu={{ items: userMenu }}
+                    className='text-uppercase'
+                >
                     <Button>
                         {user ? (
                             <Avatar

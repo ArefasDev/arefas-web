@@ -39,7 +39,7 @@ export default function Dashboard() {
 
     return (
         <React.Fragment>
-            <LayoutComponent>
+            <LayoutComponent className='text-uppercase'>
                 <Layout.Header
                     className='p-0'
                     style={{ height: 'auto' }}

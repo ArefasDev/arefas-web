@@ -1,4 +1,4 @@
-import { Col, DatePicker, Row, Select, Typography } from 'antd'
+import { Col, DatePicker, FormInstance, Row, Select, Typography } from 'antd'
 import dayjs from 'dayjs'
 import React, { useEffect, useState } from 'react'
 import { Member } from '../../../../../../../types/MemberType'
@@ -9,18 +9,36 @@ type Sections = 'personal' | 'military' | 'contact' | 'association'
 
 export default function Association({
     onChange,
+    form,
 }: {
     onChange: (v: AssociationData, t: Sections) => void
+    form: FormInstance
 }) {
-    const [data, setData] = useState<AssociationData>({
-        associationDate: new Date().toISOString(),
-        validityDate: new Date(
-            new Date().setFullYear(new Date().getFullYear() + 2)
-        ).toISOString(),
-        status: 'ativo',
-    } as AssociationData)
+    const [data, setData] = useState<AssociationData>({} as AssociationData)
 
     useEffect(() => onChange(data, 'association'), [data, onChange])
+
+    useEffect(() => {
+        if (
+            form &&
+            form.getFieldValue('associationDate') === undefined &&
+            form.getFieldValue('validityDate') === undefined &&
+            form.getFieldValue('status') === undefined
+        ) {
+            const association = new Date().toISOString()
+            const validity = new Date(
+                new Date().setFullYear(new Date().getFullYear() + 2)
+            ).toISOString()
+            form.setFieldsValue({
+                'association-date': dayjs(
+                    association,
+                    'YYYY-MM-DDTHH:mm:ss.SSSZ'
+                ),
+                'validity-date': dayjs(validity, 'YYYY-MM-DDTHH:mm:ss.SSSZ'),
+                status: 'ativo',
+            })
+        }
+    }, [form])
 
     return (
         <React.Fragment>
@@ -72,12 +90,8 @@ export default function Association({
                     xs={24}
                 >
                     <StyledForm
-                        label={
-                            <span>
-                                <span style={{ color: 'red' }}>*</span> Data da
-                                Associação
-                            </span>
-                        }
+                        label='Associação'
+                        name='association-date'
                         labelCol={{ span: 24 }}
                         wrapperCol={{ span: 24 }}
                         className='mb-3'
@@ -92,7 +106,6 @@ export default function Association({
                         <DatePicker
                             className='w-100'
                             format='DD/MM/YYYY'
-                            value={dayjs(data.associationDate)}
                             onChange={(e) =>
                                 setData((p) => ({
                                     ...p,
@@ -107,11 +120,8 @@ export default function Association({
                     xs={24}
                 >
                     <StyledForm
-                        label={
-                            <span>
-                                <span style={{ color: 'red' }}>*</span> Validade
-                            </span>
-                        }
+                        label='Validade'
+                        name='validity-date'
                         labelCol={{ span: 24 }}
                         wrapperCol={{ span: 24 }}
                         className='mb-3'
@@ -125,7 +135,6 @@ export default function Association({
                         <DatePicker
                             className='w-100'
                             format='DD/MM/YYYY'
-                            value={dayjs(data.validityDate)}
                             onChange={(e) =>
                                 setData((p) => ({
                                     ...p,
@@ -140,12 +149,8 @@ export default function Association({
                     xs={24}
                 >
                     <StyledForm
-                        label={
-                            <span>
-                                <span style={{ color: 'red' }}>*</span> Status
-                                do Associado
-                            </span>
-                        }
+                        label='Status do Associado'
+                        name='status'
                         labelCol={{ span: 24 }}
                         wrapperCol={{ span: 24 }}
                         className='mb-3'
@@ -162,7 +167,6 @@ export default function Association({
                                 { label: 'Ativo', value: 'ativo' },
                                 { label: 'Inativo', value: 'inativo' },
                             ]}
-                            value={data.status}
                             onChange={(e) =>
                                 setData((p) => ({
                                     ...p,

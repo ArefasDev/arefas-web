@@ -1,19 +1,21 @@
-import { message, Table } from 'antd'
+import { Button, message, Table, Tooltip } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import axios from 'axios'
 import dayjs from 'dayjs'
 import React, { Key, useEffect, useState } from 'react'
-import { FaUsers } from 'react-icons/fa'
+import { FaUserEdit, FaUsers } from 'react-icons/fa'
 import { FaHouse } from 'react-icons/fa6'
 import { Link } from 'react-router'
 import { baseURL } from '../../../../../globals'
 import { Member } from '../../../../../types/MemberType'
 import PageHeader from '../../../../template/PageHeader/PageHeader'
+import Form from '../NewMember/Form/Form'
 
 export default function Members() {
     const [messageApi, contextHolder] = message.useMessage()
     const [members, setMembers] = useState<Member[]>([])
     const [loading, setLoading] = useState<boolean>(false)
+    const [isEditing, setIsEditing] = useState<boolean | { id: string }>(false)
 
     const columns: ColumnsType<Member> = [
         {
@@ -88,6 +90,21 @@ export default function Members() {
                 return `${street}, ${number}, ${city} - ${uf}`
             },
         },
+        {
+            title: 'Ações',
+            fixed: 'right',
+            key: 'actions',
+            dataIndex: 'id',
+            render: (number: string) => {
+                return (
+                    <Tooltip title='Editar associado'>
+                        <Button onClick={() => setIsEditing({ id: number })}>
+                            <FaUserEdit />
+                        </Button>
+                    </Tooltip>
+                )
+            },
+        },
     ]
 
     useEffect(() => {
@@ -142,13 +159,26 @@ export default function Members() {
             />
             <div className='mb-3'></div>
             {contextHolder}
-            <Table
-                dataSource={members.map((m) => ({ ...m, key: m.id }))}
-                columns={columns}
-                className='border rounded-2 bg-white'
-                scroll={{ x: 'max-content' }}
-                loading={loading}
-            />
+            {isEditing && typeof isEditing === 'object' && (
+                <Form
+                    data={{
+                        member: members.find(
+                            (m) => m.id === isEditing.id
+                        ) as Member,
+                        id: isEditing.id,
+                    }}
+                    cancelEdit={() => setIsEditing(false)}
+                />
+            )}
+            {!isEditing && (
+                <Table
+                    dataSource={members.map((m) => ({ ...m, key: m.id }))}
+                    columns={columns}
+                    className='border rounded-2 bg-white'
+                    scroll={{ x: 'max-content' }}
+                    loading={loading}
+                />
+            )}
         </React.Fragment>
     )
 }

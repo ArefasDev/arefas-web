@@ -1,6 +1,8 @@
 import { Form as AntdForm, Button, Card, message, Spin } from 'antd'
 import axios from 'axios'
-import { useCallback, useState } from 'react'
+import { formatToCPF } from 'brazilian-values'
+import dayjs from 'dayjs'
+import { useCallback, useEffect, useState } from 'react'
 import { FaSave } from 'react-icons/fa'
 import { FaXmark } from 'react-icons/fa6'
 import { baseURL } from '../../../../../../globals'
@@ -12,10 +14,22 @@ import Military from './Military/Military'
 import Personal from './Personal/Personal'
 type Sections = 'personal' | 'military' | 'contact' | 'association'
 
-export default function Form() {
+type Data = {
+    member: Member
+    id: string
+}
+
+export default function Form({
+    data,
+    cancelEdit,
+}: {
+    data?: Data
+    cancelEdit: () => void
+}) {
     const [formData, setFormData] = useState<Member>({} as Member)
     const [messageApi, contextHolder] = message.useMessage()
     const [loading, setLoading] = useState<boolean>(false)
+    const [isEditing, setIsEditing] = useState<boolean>(false)
     const [reload, reloading] = useReload()
     const [form] = AntdForm.useForm()
 
@@ -25,7 +39,10 @@ export default function Form() {
                 (p) =>
                     ({
                         ...p,
-                        [`${type}`]: data,
+                        [`${type}`]: {
+                            ...p[type],
+                            ...data,
+                        },
                     } as Member)
             ),
         []
@@ -34,11 +51,23 @@ export default function Form() {
     const saveMember = async () => {
         setLoading(true)
         try {
-            await axios.post(`${baseURL}/members`, formData)
-            messageApi.open({
-                type: 'success',
-                content: 'Associado salvo',
-            })
+            if (!isEditing) {
+                await axios.post(`${baseURL}/members`, formData)
+                messageApi.open({
+                    type: 'success',
+                    content: 'Associado salvo',
+                })
+            } else if (data && data.id) {
+                await axios.put(`${baseURL}/doc`, {
+                    path: 'members',
+                    id: data.id,
+                    data: formData,
+                })
+                messageApi.open({
+                    type: 'success',
+                    content: 'Associado atualizado',
+                })
+            } else throw { message: 'ID não encontrado' }
 
             form.resetFields()
             setFormData({} as Member)
@@ -61,6 +90,43 @@ export default function Form() {
         }
     }
 
+    useEffect(() => {
+        if (data && data.member) {
+            console.log(data.member)
+            setFormData(data.member)
+            setIsEditing(true)
+            form.setFieldsValue({
+                ...data.member.personal,
+                cpf: formatToCPF(data.member?.personal?.cpf),
+                'civil-status': data.member.personal.civilStatus,
+                'blood-type': data.member.personal.bloodType,
+                'birth-date': dayjs(
+                    data.member.personal.birthDate,
+                    'DD/MM/YYYY'
+                ),
+                ...data.member.military,
+                'unit-served': data.member.military.unitServed,
+                'year-served': dayjs(data.member.military.yearServed, 'YYYY'),
+                'armed-forces': data.member.military.armedForces,
+                ...data.member.contact,
+                'social-medias': data.member.contact.socialMedias,
+                ...data.member.association,
+                'association-date': dayjs(
+                    data.member.association.associationDate,
+                    'YYYY-MM-DDTHH:mm:ss.SSSZ'
+                ),
+                'validity-date': dayjs(
+                    data.member.association.validityDate,
+                    'YYYY-MM-DDTHH:mm:ss.SSSZ'
+                ),
+            })
+        }
+    }, [data, form])
+
+    useEffect(() => {
+        console.log(formData)
+    }, [formData])
+
     return (
         <Spin spinning={loading}>
             <Card className='border mt-3'>
@@ -73,7 +139,10 @@ export default function Form() {
                         <Personal onChange={handleChange} />
                         <Military onChange={handleChange} />
                         <Contact onChange={handleChange} />
-                        <Association onChange={handleChange} />
+                        <Association
+                            onChange={handleChange}
+                            form={form}
+                        />
                         <Button
                             type='primary'
                             htmlType='submit'
@@ -85,9 +154,9 @@ export default function Form() {
                             type='default'
                             htmlType='reset'
                             className='mt-2 ms-2'
-                            onClick={reload}
+                            onClick={isEditing ? cancelEdit : reload}
                         >
-                            <FaXmark /> Limpar
+                            <FaXmark /> {isEditing ? 'Cancelar' : 'Limpar'}
                         </Button>
                     </AntdForm>
                 )}

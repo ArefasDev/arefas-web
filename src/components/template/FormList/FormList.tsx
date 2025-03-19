@@ -1,6 +1,6 @@
 import { Button, Col, Input, List, message, Row, Select, Space } from 'antd'
 import ButtonGroup from 'antd/es/button/button-group'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FaPlus, FaSave } from 'react-icons/fa'
 import { FaX } from 'react-icons/fa6'
 
@@ -25,9 +25,11 @@ type Field = {
 }
 
 export default function FormList({
+    value,
     config,
     onChange,
 }: {
+    value?: FormValues[]
     config: {
         fields: Field[]
         hasPrimary?: boolean
@@ -114,6 +116,10 @@ export default function FormList({
 
         return `${fieldsToShow}${item.isPrimary ? ' (Primário)' : ''}`
     }
+
+    useEffect(() => {
+        if (value) setItems(value)
+    }, [value])
 
     return (
         <div>

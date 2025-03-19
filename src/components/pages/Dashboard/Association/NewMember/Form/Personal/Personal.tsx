@@ -13,9 +13,7 @@ export default function Personal({
 }: {
     onChange: (v: PersonalData, t: Sections) => void
 }) {
-    const [data, setData] = useState<PersonalData>({
-        avatar: null,
-    } as PersonalData)
+    const [data, setData] = useState<PersonalData>({} as PersonalData)
 
     useEffect(() => {
         onChange(data, 'personal')
@@ -25,9 +23,17 @@ export default function Personal({
         <React.Fragment>
             <Typography.Title level={4}>Dados Pessoais</Typography.Title>
             <div className='mb-3 d-flex justify-content-center'>
-                <UploadImage
-                    onChange={(URL) => setData((p) => ({ ...p, avatar: URL }))}
-                />
+                <StyledForm
+                    name='avatar'
+                    labelCol={{ span: 24 }}
+                    wrapperCol={{ span: 24 }}
+                >
+                    <UploadImage
+                        onChange={(URL) =>
+                            setData((p) => ({ ...p, avatar: URL }))
+                        }
+                    />
+                </StyledForm>
             </div>
             <StyledForm
                 label='Nome completo'
